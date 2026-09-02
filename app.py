@@ -35,7 +35,6 @@ MEVZUATLAR = {
     "tasinmaz-ticareti": {"ad":"TAŞINMAZ TİCARETİ HAKKINDA YÖNETMELİK","no":"24645","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=24645&MevzuatTur=7&MevzuatTertip=5"},
     "motorlu-kara-ticareti": {"ad":"MOTORLU KARA TAŞITLARININ TİCARETİ HAKKINDA YÖNETMELİK","no":"40940","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=40940&MevzuatTur=7&MevzuatTertip=5"},
     "kuyum-ticareti": {"ad":"KUYUM TİCARETİ HAKKINDA YÖNETMELİK","no":"38527","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=38527&MevzuatTur=7&MevzuatTertip=5"},
-    "motorlu-kara-kiralanmasi": {"ad":"MOTORLU KARA TAŞITLARININ KİRALANMASI HAKKINDA YÖNETMELİK","kaynak":"https://www.resmigazete.gov.tr/eskiler/2026/08/20260815-1.htm","direct_html":True},
     "alisveris-merkezleri": {"ad":"ALIŞVERİŞ MERKEZLERİ HAKKINDA YÖNETMELİK","no":"21431","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=21431&MevzuatTur=7&MevzuatTertip=5"},
     "perakende-ilke-kurallar": {"ad":"PERAKENDE TİCARETTE UYGULANACAK İLKE VE KURALLAR HAKKINDA YÖNETMELİK","no":"22722","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=22722&MevzuatTur=7&MevzuatTertip=5"},
     "6563-elektronik-ticaret": {"ad":"6563 SAYILI ELEKTRONİK TİCARETİN DÜZENLENMESİ HAKKINDA KANUN","no":"6563","tur":"1","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6563&MevzuatTur=1&MevzuatTertip=5"}
