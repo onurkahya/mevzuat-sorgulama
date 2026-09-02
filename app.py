@@ -244,13 +244,13 @@ def split_articles(text):
     return articles
 
 
-SUP_TOKEN_START = "⟦SUP⟧"
-SUP_TOKEN_END = "⟦/SUP⟧"
+SUP_TOKEN_START = "__SUP_START__"
+SUP_TOKEN_END = "__SUP_END__"
 
 def preserve_superscripts(soup):
     """
     Resmî HTML içindeki <sup> öğelerini özel işaretlerle korur.
-    Örn. <sup>[1]</sup> -> ⟦SUP⟧[1]⟦/SUP⟧
+    Örn. <sup>[1]</sup> -> __SUP_START__[1]__SUP_END__
     """
     for tag in soup.find_all("sup"):
         value = re.sub(r"\s+", "", tag.get_text(" ", strip=True))
