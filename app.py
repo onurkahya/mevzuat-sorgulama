@@ -175,13 +175,32 @@ def format_body(raw):
     raw = raw.replace("\xa0", " ")
     raw = re.sub(r"\s+", " ", raw).strip()
 
-    # Yeni fıkraları yalnızca önceki cümle bitmişse yeni satıra al.
-    # Böylece "(Ek ibare...)(1) ile" içindeki dipnot (1) bölünmez.
-    raw = re.sub(r"(?<=[.!?])\s+(?=\(\d+\)\s+[A-ZÇĞİÖŞÜ])", "\n", raw)
+    # FIKRALAR:
+    # Bir cümle . ! ? ile bittikten sonra gelen (2), (3), (4)... işaretlerini
+    # mutlaka yeni satıra alır. İşaretin ardından "(Ek ibare...)" gibi bir
+    # açıklama gelse bile çalışır.
+    #
+    # Değişiklik dipnotlarındaki "(Ek ibare...)(1)" ise öncesinde cümle sonu
+    # bulunmadığı için yanlışlıkla yeni fıkra yapılmaz.
+    raw = re.sub(r"(?<=[.!?])\s*(?=\(\d+\))", "\n", raw)
 
-    # Bentleri okunaklı tut.
-    raw = re.sub(r"\s+(?=[a-zçğıöşü]\)\s+[A-ZÇĞİÖŞÜ])", "\n", raw, flags=re.I)
+    # BENTLER:
+    # a), b), c), ç)... bentlerini yeni satıra alır.
+    raw = re.sub(
+        r"(?<!^)\s+(?=(?:[a-zçğıöşü])\)\s+)",
+        "\n",
+        raw,
+        flags=re.I
+    )
 
+    # 1), 2), 3) şeklindeki alt bentleri de yeni satıra al.
+    raw = re.sub(
+        r"(?<!^)\s+(?=\d+\)\s+)",
+        "\n",
+        raw
+    )
+
+    raw = re.sub(r"\n{2,}", "\n", raw)
     return raw.strip()
 
 def split_articles(text):
@@ -223,6 +242,32 @@ def split_articles(text):
 
     return articles
 
+
+SUPERSCRIPT_MAP = str.maketrans({
+    "0":"⁰", "1":"¹", "2":"²", "3":"³", "4":"⁴",
+    "5":"⁵", "6":"⁶", "7":"⁷", "8":"⁸", "9":"⁹",
+    "+":"⁺", "-":"⁻", "=":"⁼", "(":"⁽", ")":"⁾",
+    "n":"ⁿ", "i":"ⁱ"
+})
+
+def to_superscript_text(value):
+    value = re.sub(r"\s+", "", value or "")
+    return value.translate(SUPERSCRIPT_MAP)
+
+def preserve_superscripts(soup):
+    """
+    Resmî HTML içindeki <sup> öğelerini düz metne dönüşmeden önce
+    Unicode üst karakterlere çevirir.
+    Örn. <sup>(1)</sup> -> ⁽¹⁾
+    """
+    for tag in soup.find_all("sup"):
+        value = tag.get_text(" ", strip=True)
+        converted = to_superscript_text(value)
+        if converted:
+            tag.replace_with(converted)
+        else:
+            tag.decompose()
+
 def fetch_live_html(item):
     url = (
         f"{BASE}/anasayfa/MevzuatFihristDetayIframe"
@@ -233,6 +278,7 @@ def fetch_live_html(item):
     soup = BeautifulSoup(r.text, "html.parser")
     for t in soup(["script", "style", "noscript"]):
         t.decompose()
+    preserve_superscripts(soup)
     articles = split_articles(soup.get_text("\n"))
     if not articles:
         raise RuntimeError("Canlı HTML geldi ancak madde başlıkları ayrıştırılamadı.")
