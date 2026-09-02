@@ -30,6 +30,46 @@ button.secondary{background:transparent;color:#fff;border:1px solid rgba(255,255
 .body{white-space:normal;line-height:1.42;font-size:15px;text-align:justify;text-justify:inter-word}
 a{color:#0b3aa4}
 @media(max-width:700px){.grid,.actions{grid-template-columns:1fr}h1{font-size:23px}}
+
+.font-actions{
+  display:grid;
+  grid-template-columns:1fr 78px 78px;
+  gap:10px;
+  margin-top:16px
+}
+.font-btn{
+  background:transparent;
+  color:#fff;
+  border:1px solid rgba(255,255,255,.42);
+  font-size:18px;
+  font-weight:900;
+  padding:10px
+}
+.status-card{padding:14px 18px}
+.status-card .status{margin:0}
+.print-card{padding:14px 18px}
+.print-card button{max-width:100%}
+.site-footer{
+  text-align:center;
+  color:#cbd4f3;
+  font-size:12px;
+  line-height:1.5;
+  padding:4px 10px 28px
+}
+.empty-result{
+  color:#707070;
+  font-style:italic;
+  font-size:14px
+}
+.result h2{font-size:calc(21px + var(--font-delta,0px))}
+.article-title{font-size:calc(17px + var(--font-delta,0px))}
+.body{font-size:calc(15px + var(--font-delta,0px))}
+select,button{font-size:calc(15px + var(--font-delta,0px))}
+label,.status{font-size:calc(13px + var(--font-delta,0px))}
+@media(max-width:700px){
+  .font-actions{grid-template-columns:1fr 64px 64px}
+}
+
 @page{
   size:A4 portrait;
   margin:1.5cm 2cm 2cm 2cm;
@@ -45,7 +85,10 @@ a{color:#0b3aa4}
 
   .topline,
   header,
-  .query{
+  .query,
+  .status-card,
+  .print-card,
+  .site-footer{
     display:none !important;
   }
 
@@ -134,6 +177,7 @@ a{color:#0b3aa4}
   <div>
    <label>MEVZUAT</label>
    <select id="law">
+    <option value="" selected>Lütfen Mevzuat Seçin</option>
     {% for key,item in mevzuatlar.items() %}
     <option value="{{key}}">{{item.ad}}</option>
     {% endfor %}
@@ -141,91 +185,176 @@ a{color:#0b3aa4}
   </div>
   <div>
    <label>MADDE NUMARASI</label>
-   <select id="article" disabled><option>Güncel metin yükleniyor...</option></select>
+   <select id="article" disabled>
+    <option value="">Önce mevzuat seçin</option>
+   </select>
   </div>
  </div>
- <div class="actions">
-  <button onclick="loadLaw()">Güncel Metni Yeniden Getir</button>
-  <button class="secondary" onclick="window.print()">PDF / Yazdır</button>
+
+ <div class="font-actions">
+  <button onclick="loadLaw()">Seçili Mevzuatı Getir</button>
+  <button type="button" class="font-btn" onclick="changeFont(-1)" title="Yazıyı küçült">A−</button>
+  <button type="button" class="font-btn" onclick="changeFont(1)" title="Yazıyı büyüt">A+</button>
  </div>
- <div id="status" class="status warn">Canlı kaynakla bağlantı kuruluyor...</div>
 </section>
 
-<section class="card">
+<section class="card" id="resultCard">
  <div class="result" id="result">
-  <h2>Madde metni</h2>
+  <h2>Mevzuat Madde Sorgulama</h2>
   <div class="article-title" id="articleTitle"></div>
   <div class="meta"></div>
-  <div class="body"></div>
+  <div class="body empty-result">Lütfen önce bir mevzuat seçerek “Seçili Mevzuatı Getir” düğmesine basın.</div>
  </div>
+</section>
+
+<section class="card status-card">
+ <div id="status" class="status warn">Henüz bir mevzuat seçilmedi.</div>
+</section>
+
+<section class="card print-card">
+ <button class="secondary" onclick="printSelected()">PDF / Yazdır</button>
 </section>
 </main>
 
+<footer class="site-footer">
+ © Bu sayfa Onur KAHYA tarafından bilgilendirme amacıyla hazırlanmıştır 2026.
+</footer>
+
 <script>
 let current=null;
+let fontDelta=0;
+
+function setStatus(message,type="warn"){
+ const st=document.getElementById("status");
+ st.className="status "+type;
+ st.textContent=message;
+}
+
+function resetResult(){
+ current=null;
+ const sel=document.getElementById("article");
+ sel.disabled=true;
+ sel.innerHTML='<option value="">Önce mevzuat seçin</option>';
+
+ const result=document.getElementById("result");
+ result.querySelector("h2").textContent="Mevzuat Madde Sorgulama";
+ const titleEl=result.querySelector("#articleTitle");
+ titleEl.textContent="";
+ titleEl.style.display="none";
+
+ const bodyEl=result.querySelector(".body");
+ bodyEl.className="body empty-result";
+ bodyEl.textContent='Lütfen önce bir mevzuat seçerek “Seçili Mevzuatı Getir” düğmesine basın.';
+}
 
 async function loadLaw(){
  const key=document.getElementById("law").value;
  const sel=document.getElementById("article");
- const st=document.getElementById("status");
- st.className="status warn";
- st.textContent="Mevzuat.gov.tr üzerinden güncel metin alınıyor...";
+
+ if(!key){
+   resetResult();
+   setStatus("Lütfen önce bir mevzuat seçin.","warn");
+   return;
+ }
+
+ setStatus("Mevzuat.gov.tr üzerinden güncel metin alınıyor...","warn");
  sel.disabled=true;
  sel.innerHTML="<option>Yükleniyor...</option>";
+
  try{
    const response=await fetch("/api/mevzuat/"+encodeURIComponent(key),{cache:"no-store"});
    const d=await response.json();
    if(!d.ok) throw new Error(d.error||"Veri alınamadı.");
+
    current=d;
    sel.innerHTML="";
    d.articles.forEach((a,i)=>{
       const o=document.createElement("option");
-      o.value=i; o.textContent=a.etiket; sel.appendChild(o);
+      o.value=i;
+      o.textContent=a.etiket;
+      sel.appendChild(o);
    });
+
    sel.disabled=false;
    sel.onchange=showArticle;
    showArticle();
 
    if(d.from_cache){
-      st.className="status warn";
-      st.textContent="Canlı kaynak o anda alınamadı. Son başarılı kopya gösteriliyor. Kayıt zamanı: "+(d.cache_time||"-");
+      setStatus(
+        "Canlı kaynak o anda alınamadı. Son başarılı kopya gösteriliyor. Kayıt zamanı: "+(d.cache_time||"-"),
+        "warn"
+      );
    }else{
-      st.className="status good";
       const src=d.source_type==="canli_html" ? "Canlı HTML" : "Resmî PDF";
       const sslNote=d.ssl_fallback ? " — SSL doğrulama yedeği kullanıldı" : "";
-      st.textContent="Güncel kaynak başarılı — "+src+" — "+d.articles.length+" madde bulundu"+sslNote+". Alınma zamanı: "+(d.fetched_at||"-");
+      setStatus(
+        "Güncel kaynak başarılı — "+src+" — "+d.articles.length+" madde bulundu"+sslNote+
+        ". Alınma zamanı: "+(d.fetched_at||"-"),
+        "good"
+      );
    }
  }catch(err){
    current=null;
    sel.innerHTML="<option>Veri alınamadı</option>";
-   st.className="status bad";
-   st.textContent="Mevzuat.gov.tr üzerinden canlı veri alınamadı: "+err.message;
-   document.querySelector("#result .body").textContent="";
+   setStatus("Mevzuat.gov.tr üzerinden canlı veri alınamadı: "+err.message,"bad");
+
+   const body=document.querySelector("#result .body");
+   body.className="body empty-result";
+   body.textContent="Seçilen mevzuatın güncel metni alınamadı.";
  }
 }
 
 function showArticle(){
  if(!current)return;
- const a=current.articles[Number(document.getElementById("article").value||0)];
+
+ const index=Number(document.getElementById("article").value||0);
+ const a=current.articles[index];
+ if(!a)return;
+
  const result=document.getElementById("result");
  result.querySelector("h2").textContent=current.ad;
+
  const titleEl=result.querySelector("#articleTitle");
  titleEl.textContent=a.baslik || "";
  titleEl.style.display=a.baslik ? "block" : "none";
- result.querySelector(".meta").innerHTML=
-   'Kaynak: <a target="_blank" rel="noopener" href="'+current.kaynak+'">mevzuat.gov.tr resmî metni</a>'+
-   " · Veri zamanı: "+(current.fetched_at||current.cache_time||"-");
 
  const bodyEl=result.querySelector(".body");
+ bodyEl.className="body";
+
  const prefix=(a.gecici ? "GEÇİCİ MADDE " : "MADDE ")+a.madde_no+" –";
  const escaped=(a.metin||"").replace(/[&<>"']/g,function(c){
    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c];
  });
+
  bodyEl.innerHTML='<strong>'+prefix+'</strong> '+escaped.replace(/\n/g,"<br>");
 }
 
-document.getElementById("law").addEventListener("change",loadLaw);
-window.addEventListener("DOMContentLoaded",loadLaw);
+function changeFont(direction){
+ fontDelta=Math.max(-2,Math.min(6,fontDelta+direction));
+ document.documentElement.style.setProperty("--font-delta",fontDelta+"px");
+}
+
+function printSelected(){
+ if(!current){
+   setStatus("PDF/Yazdır için önce bir mevzuat ve madde seçin.","warn");
+   return;
+ }
+ window.print();
+}
+
+document.getElementById("law").addEventListener("change",function(){
+ resetResult();
+ if(this.value){
+   setStatus('Mevzuat seçildi. “Seçili Mevzuatı Getir” düğmesine basın.',"warn");
+ }else{
+   setStatus("Henüz bir mevzuat seçilmedi.","warn");
+ }
+});
+
+window.addEventListener("DOMContentLoaded",function(){
+ resetResult();
+ setStatus("Henüz bir mevzuat seçilmedi.","warn");
+});
 </script>
 </body>
 </html>
