@@ -74,7 +74,19 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
 .view-card{display:none}
 .view-card.active{display:block}
 .view-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.view-actions button{min-height:48px}
+
+.view-actions button{
+  min-height:50px;
+  background:#f4c833 !important;
+  color:#111 !important;
+  border:0 !important;
+  font-weight:800 !important;
+  box-shadow:0 5px 12px rgba(0,0,0,.20) !important;
+}
+.view-actions button:hover{
+  transform:translateY(-1px);
+}
+
 .article-row{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:12px;align-items:end;margin-top:14px}
 .article-row .query-fonts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 #result{--result-font-delta:0px}
@@ -125,17 +137,9 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
     page-break-after:avoid !important;
   }
 
-  .print-header .ministry{
-    font-size:10pt !important;
-    font-weight:700 !important;
-    margin:0 0 3px 0 !important;
-  }
+  .print-header .ministry{font-size:15pt !important;font-weight:800 !important;margin:0 0 3px 0 !important}
 
-  .print-header .library{
-    font-size:14pt !important;
-    font-weight:800 !important;
-    margin:0 !important;
-  }
+  .print-header .library{font-size:10pt !important;font-weight:700 !important;margin:0 !important}
 
   main{
     width:100% !important;
@@ -229,8 +233,8 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
 <body>
 <div class="topline"></div>
 <header>
-  <div class="eyebrow">T.C. Ticaret Bakanlığı</div>
-  <h1>Mevzuat Kütüphanesi</h1>
+  <h1>T.C. Ticaret Bakanlığı</h1>
+  <div class="eyebrow">Mevzuat Kütüphanesi</div>
 </header>
 <main>
 
@@ -254,8 +258,8 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
 
 <section class="card view-card" id="viewCard">
  <div class="view-actions">
+  <button type="button" onclick="showArticleMode()">Mevzuatı Madde Madde Görüntüle</button>
   <button type="button" onclick="showFullLaw()">Mevzuatın Tamamını Görüntüle</button>
-  <button type="button" class="secondary" onclick="showArticleMode()">Mevzuatı Madde Madde Görüntüle</button>
  </div>
 
  <div class="article-row" id="articleControls" style="display:none">
@@ -300,13 +304,9 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
 
 </main>
 
-<footer class="site-footer">
- © Bu sayfa Onur KAHYA tarafından bilgilendirme amacıyla hazırlanmıştır 2026.
-</footer>
 
-<footer class="site-footer">
- © Bu sayfa Onur KAHYA tarafından bilgilendirme amacıyla hazırlanmıştır 2026.
-</footer>
+
+
 
 <script>
 let current=null;
@@ -401,7 +401,7 @@ function showSelectedArticle(){
  const raw=document.getElementById("article").value;
  if(raw===""){
    document.getElementById("resultCard").style.display="none";
-   document.getElementById("printCard").style.display="none";
+   document.getElementById("printCard").style.display="block";
    return;
  }
 
@@ -456,7 +456,7 @@ function showFullLaw(){
  bodyEl.innerHTML=fullHtml;
 
  document.getElementById("resultCard").style.display="block";
- document.getElementById("printCard").style.display="block";
+ document.getElementById("printCard").style.display="none";
 }
 
 function changeFont(direction){
@@ -480,5 +480,10 @@ window.addEventListener("DOMContentLoaded",function(){
  resetPage();
 });
 </script>
+
+<footer class="site-footer">
+ © Bu sayfa Onur KAHYA tarafından bilgilendirme amacıyla hazırlanmıştır 2026.
+</footer>
+
 </body>
 </html>
