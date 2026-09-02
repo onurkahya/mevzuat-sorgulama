@@ -46,8 +46,8 @@ a{color:#0b3aa4}
 }
 .status-card{padding:14px 18px}
 .status-card .status{margin:0}
-.print-card{padding:14px 18px}
-.print-card button{max-width:100%}
+.print-card{padding:14px 18px;max-width:310px;margin-left:auto;margin-right:auto}
+.print-card button{width:100%;max-width:100%;min-height:48px}
 .site-footer{
   text-align:center;
   color:#cbd4f3;
@@ -70,6 +70,28 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
   .query-law,.query-fetch,.query-article,.query-fonts{grid-column:1;grid-row:auto;max-width:none}
 }
 
+
+.view-card{display:none}
+.view-card.active{display:block}
+.view-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.view-actions button{min-height:48px}
+.article-row{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:12px;align-items:end;margin-top:14px}
+.article-row .query-fonts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#result{--result-font-delta:0px}
+#result h2{font-size:calc(21px + var(--result-font-delta)) !important}
+#result .article-title{font-size:calc(17px + var(--result-font-delta)) !important}
+#result .body{font-size:calc(15px + var(--result-font-delta)) !important}
+.full-law .full-article{margin:0 0 18px 0}
+.full-law .full-article:last-child{margin-bottom:0}
+.full-law .full-article-title{font-weight:800;font-size:calc(16px + var(--result-font-delta));margin:0 0 5px 0}
+.full-law .full-article-body{font-size:calc(15px + var(--result-font-delta));line-height:1.42;text-align:justify}
+.full-law .full-article-body strong{font-weight:800}
+.print-header{display:none}
+@media(max-width:700px){
+  .view-actions{grid-template-columns:1fr}
+  .article-row{grid-template-columns:1fr}
+}
+
 @page{
   size:A4 portrait;
   margin:1.5cm 2cm 2cm 2cm;
@@ -86,10 +108,33 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
   .topline,
   header,
   .query,
+  .view-card,
   .status-card,
   .print-card,
   .site-footer{
     display:none !important;
+  }
+
+  .print-header{
+    display:block !important;
+    border:1px solid #8d8d8d !important;
+    border-radius:10px !important;
+    padding:10px 14px !important;
+    margin:0 0 12px 0 !important;
+    text-align:center !important;
+    page-break-after:avoid !important;
+  }
+
+  .print-header .ministry{
+    font-size:10pt !important;
+    font-weight:700 !important;
+    margin:0 0 3px 0 !important;
+  }
+
+  .print-header .library{
+    font-size:14pt !important;
+    font-weight:800 !important;
+    margin:0 !important;
   }
 
   main{
@@ -157,6 +202,23 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
     font-weight:800 !important;
   }
 
+  .full-law .full-article{
+    margin:0 0 10px 0 !important;
+    page-break-inside:avoid !important;
+  }
+
+  .full-law .full-article-title{
+    font-size:10.5pt !important;
+    line-height:1.2 !important;
+    margin:0 0 4px 0 !important;
+  }
+
+  .full-law .full-article-body{
+    font-size:10pt !important;
+    line-height:1.38 !important;
+    text-align:justify !important;
+  }
+
   a{
     color:#000 !important;
     text-decoration:none !important;
@@ -167,11 +229,11 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
 <body>
 <div class="topline"></div>
 <header>
- <div class="tc">T.C. MEVZUAT MADDE SORGULAMA</div>
- <h1>Mevzuat Madde Sorgulama Sistemi</h1>
- <p>Canlı kaynak: mevzuat.gov.tr</p>
+  <div class="eyebrow">T.C. Ticaret Bakanlığı</div>
+  <h1>Mevzuat Kütüphanesi</h1>
 </header>
 <main>
+
 <section class="card query">
  <div class="query-grid">
   <div class="query-law">
@@ -185,16 +247,32 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
   </div>
 
   <div class="query-fetch">
-   <button onclick="loadLaw()">Seçili Mevzuatı Getir</button>
+   <button onclick="loadLaw()">Mevzuatı Getir</button>
   </div>
+ </div>
+</section>
 
-  <div class="query-article">
+<section class="card view-card" id="viewCard">
+ <div class="view-actions">
+  <button type="button" onclick="showFullLaw()">Mevzuatın Tamamını Görüntüle</button>
+  <button type="button" class="secondary" onclick="showArticleMode()">Mevzuatı Madde Madde Görüntüle</button>
+ </div>
+
+ <div class="article-row" id="articleControls" style="display:none">
+  <div>
    <label>MADDE NUMARASI</label>
-   <select id="article" disabled>
-    <option value="">Önce mevzuat seçin</option>
+   <select id="article">
+    <option value="">Madde seçin</option>
    </select>
   </div>
+  <div class="query-fonts">
+   <button type="button" class="font-btn" onclick="changeFont(-1)">A−</button>
+   <button type="button" class="font-btn" onclick="changeFont(1)">A+</button>
+  </div>
+ </div>
 
+ <div class="article-row" id="fullControls" style="display:none">
+  <div></div>
   <div class="query-fonts">
    <button type="button" class="font-btn" onclick="changeFont(-1)">A−</button>
    <button type="button" class="font-btn" onclick="changeFont(1)">A+</button>
@@ -202,23 +280,29 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
  </div>
 </section>
 
-<section class="card" id="resultCard">
+<div class="print-header">
+ <div class="ministry">T.C. Ticaret Bakanlığı</div>
+ <div class="library">Mevzuat Kütüphanesi</div>
+</div>
+
+<section class="card" id="resultCard" style="display:none">
  <div class="result" id="result">
-  <h2>Mevzuat Madde Sorgulama</h2>
+  <h2></h2>
   <div class="article-title" id="articleTitle"></div>
   <div class="meta"></div>
-  <div class="body empty-result">Lütfen önce bir mevzuat seçerek “Seçili Mevzuatı Getir” düğmesine basın.</div>
+  <div class="body"></div>
  </div>
 </section>
 
-<section class="card status-card">
- <div id="status" class="status warn">Henüz bir mevzuat seçilmedi.</div>
-</section>
-
-<section class="card print-card">
+<section class="card print-card" id="printCard" style="display:none">
  <button class="secondary" onclick="printSelected()">PDF / Yazdır</button>
 </section>
+
 </main>
+
+<footer class="site-footer">
+ © Bu sayfa Onur KAHYA tarafından bilgilendirme amacıyla hazırlanmıştır 2026.
+</footer>
 
 <footer class="site-footer">
  © Bu sayfa Onur KAHYA tarafından bilgilendirme amacıyla hazırlanmıştır 2026.
@@ -227,43 +311,48 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
 <script>
 let current=null;
 let fontDelta=0;
+let currentMode=null;
 
-function setStatus(message,type="warn"){
- const st=document.getElementById("status");
- st.className="status "+type;
- st.textContent=message;
+function escapeHtml(value){
+ return (value||"").replace(/[&<>"']/g,function(c){
+   return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c];
+ });
 }
 
-function resetResult(){
+function resetPage(){
  current=null;
- const sel=document.getElementById("article");
- sel.disabled=true;
- sel.innerHTML='<option value="">Önce mevzuat seçin</option>';
+ currentMode=null;
+ fontDelta=0;
+
+ document.getElementById("viewCard").classList.remove("active");
+ document.getElementById("articleControls").style.display="none";
+ document.getElementById("fullControls").style.display="none";
+ document.getElementById("resultCard").style.display="none";
+ document.getElementById("printCard").style.display="none";
 
  const result=document.getElementById("result");
- result.querySelector("h2").textContent="Mevzuat Madde Sorgulama";
- const titleEl=result.querySelector("#articleTitle");
- titleEl.textContent="";
- titleEl.style.display="none";
+ result.style.setProperty("--result-font-delta","0px");
+ result.querySelector("h2").textContent="";
+ result.querySelector("#articleTitle").textContent="";
+ result.querySelector(".body").innerHTML="";
+ result.querySelector(".body").className="body";
 
- const bodyEl=result.querySelector(".body");
- bodyEl.className="body empty-result";
- bodyEl.textContent='Lütfen önce bir mevzuat seçerek “Seçili Mevzuatı Getir” düğmesine basın.';
+ const sel=document.getElementById("article");
+ sel.innerHTML='<option value="">Madde seçin</option>';
 }
 
 async function loadLaw(){
  const key=document.getElementById("law").value;
- const sel=document.getElementById("article");
-
  if(!key){
-   resetResult();
-   setStatus("Lütfen önce bir mevzuat seçin.","warn");
+   resetPage();
+   alert("Lütfen önce bir mevzuat seçin.");
    return;
  }
 
- setStatus("Resmî kaynaktan güncel metin alınıyor...","warn");
- sel.disabled=true;
- sel.innerHTML="<option>Yükleniyor...</option>";
+ const fetchBtn=document.querySelector(".query-fetch button");
+ const oldText=fetchBtn.textContent;
+ fetchBtn.disabled=true;
+ fetchBtn.textContent="Mevzuat getiriliyor...";
 
  try{
    const response=await fetch("/api/mevzuat/"+encodeURIComponent(key),{cache:"no-store"});
@@ -271,50 +360,55 @@ async function loadLaw(){
    if(!d.ok) throw new Error(d.error||"Veri alınamadı.");
 
    current=d;
-   sel.innerHTML="";
+   currentMode=null;
+
+   const sel=document.getElementById("article");
+   sel.innerHTML='<option value="" selected>Madde seçin</option>';
    d.articles.forEach((a,i)=>{
       const o=document.createElement("option");
       o.value=i;
       o.textContent=a.etiket+(a.baslik ? " - "+a.baslik : "");
       sel.appendChild(o);
    });
+   sel.onchange=showSelectedArticle;
 
-   sel.disabled=false;
-   sel.onchange=showArticle;
-   showArticle();
-
-   if(d.from_cache){
-      setStatus(
-        "Canlı kaynak o anda alınamadı. Son başarılı kopya gösteriliyor. Kayıt zamanı: "+(d.cache_time||"-"),
-        "warn"
-      );
-   }else{
-      const src=d.source_type==="canli_html" ? "Canlı HTML" : (d.source_type==="resmi_html" ? "Resmî Gazete HTML" : "Resmî PDF");
-      const sslNote=d.ssl_fallback ? " — SSL doğrulama yedeği kullanıldı" : "";
-      setStatus(
-        "Güncel kaynak başarılı — "+src+" — "+d.articles.length+" madde bulundu"+sslNote+
-        ". Alınma zamanı: "+(d.fetched_at||"-"),
-        "good"
-      );
-   }
+   document.getElementById("viewCard").classList.add("active");
+   document.getElementById("articleControls").style.display="none";
+   document.getElementById("fullControls").style.display="none";
+   document.getElementById("resultCard").style.display="none";
+   document.getElementById("printCard").style.display="none";
  }catch(err){
-   current=null;
-   sel.innerHTML="<option>Veri alınamadı</option>";
-   setStatus("Resmî kaynaktan canlı veri alınamadı: "+err.message,"bad");
-
-   const body=document.querySelector("#result .body");
-   body.className="body empty-result";
-   body.textContent="Seçilen mevzuatın güncel metni alınamadı.";
+   resetPage();
+   alert("Resmî kaynaktan mevzuat alınamadı: "+err.message);
+ }finally{
+   fetchBtn.disabled=false;
+   fetchBtn.textContent=oldText;
  }
 }
 
-function showArticle(){
+function showArticleMode(){
  if(!current)return;
+ currentMode="article";
+ document.getElementById("articleControls").style.display="grid";
+ document.getElementById("fullControls").style.display="none";
+ document.getElementById("resultCard").style.display="none";
+ document.getElementById("printCard").style.display="none";
+ document.getElementById("article").value="";
+}
 
- const index=Number(document.getElementById("article").value||0);
- const a=current.articles[index];
+function showSelectedArticle(){
+ if(!current)return;
+ const raw=document.getElementById("article").value;
+ if(raw===""){
+   document.getElementById("resultCard").style.display="none";
+   document.getElementById("printCard").style.display="none";
+   return;
+ }
+
+ const a=current.articles[Number(raw)];
  if(!a)return;
 
+ currentMode="article";
  const result=document.getElementById("result");
  result.querySelector("h2").textContent=current.ad;
 
@@ -324,40 +418,66 @@ function showArticle(){
 
  const bodyEl=result.querySelector(".body");
  bodyEl.className="body";
-
  const prefix=(a.gecici ? "GEÇİCİ MADDE " : "MADDE ")+a.madde_no+" –";
- const escaped=(a.metin||"").replace(/[&<>"']/g,function(c){
-   return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c];
- });
+ bodyEl.innerHTML='<strong>'+prefix+'</strong> '+escapeHtml(a.metin).replace(/\n/g,"<br>");
 
- bodyEl.innerHTML='<strong>'+prefix+'</strong> '+escaped.replace(/\n/g,"<br>");
+ document.getElementById("resultCard").style.display="block";
+ document.getElementById("printCard").style.display="block";
+}
+
+function showFullLaw(){
+ if(!current)return;
+
+ currentMode="full";
+ document.getElementById("articleControls").style.display="none";
+ document.getElementById("fullControls").style.display="grid";
+
+ const result=document.getElementById("result");
+ result.querySelector("h2").textContent=current.ad;
+
+ const titleEl=result.querySelector("#articleTitle");
+ titleEl.textContent="";
+ titleEl.style.display="none";
+
+ const bodyEl=result.querySelector(".body");
+ bodyEl.className="body full-law";
+
+ let fullHtml="";
+ current.articles.forEach(a=>{
+   const prefix=(a.gecici ? "GEÇİCİ MADDE " : "MADDE ")+a.madde_no+" –";
+   fullHtml+='<div class="full-article">';
+   if(a.baslik){
+     fullHtml+='<div class="full-article-title">'+escapeHtml(a.baslik)+'</div>';
+   }
+   fullHtml+='<div class="full-article-body"><strong>'+prefix+'</strong> '+
+     escapeHtml(a.metin).replace(/\n/g,"<br>")+
+     '</div></div>';
+ });
+ bodyEl.innerHTML=fullHtml;
+
+ document.getElementById("resultCard").style.display="block";
+ document.getElementById("printCard").style.display="block";
 }
 
 function changeFont(direction){
  fontDelta=Math.max(-2,Math.min(6,fontDelta+direction));
- document.documentElement.style.setProperty("--font-delta",fontDelta+"px");
+ document.getElementById("result").style.setProperty("--result-font-delta",fontDelta+"px");
 }
 
 function printSelected(){
- if(!current){
-   setStatus("PDF/Yazdır için önce bir mevzuat ve madde seçin.","warn");
+ if(!current || !currentMode){
+   alert("Önce görüntülenecek mevzuat veya maddeyi seçin.");
    return;
  }
  window.print();
 }
 
 document.getElementById("law").addEventListener("change",function(){
- resetResult();
- if(this.value){
-   setStatus('Mevzuat seçildi. “Seçili Mevzuatı Getir” düğmesine basın.',"warn");
- }else{
-   setStatus("Henüz bir mevzuat seçilmedi.","warn");
- }
+ resetPage();
 });
 
 window.addEventListener("DOMContentLoaded",function(){
- resetResult();
- setStatus("Henüz bir mevzuat seçilmedi.","warn");
+ resetPage();
 });
 </script>
 </body>
