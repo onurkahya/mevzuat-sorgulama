@@ -78,113 +78,99 @@ SECTION_WORDS = (
     "ON BEŞİNCİ|ON ALTINCI|ON YEDİNCİ|ON SEKİZİNCİ|ON DOKUZUNCU|YİRMİNCİ"
 )
 
-SECTION_RE = re.compile(
-    rf"(?im)^[ \t]*(?:{SECTION_WORDS})\s+BÖLÜM(?:\s*$|\s+.*$)"
-)
-
 ARTICLE_RE = re.compile(
     r"(?im)^[ \t]*(?P<title>(?:GEÇİCİ\s+)?MADDE\s+(?P<num>\d+(?:/[A-ZÇĞİÖŞÜ])?))"
     r"\s*[-–—:]?\s*"
 )
 
+SECTION_RE = re.compile(
+    rf"(?im)^[ \t]*(?:{SECTION_WORDS})\s+BÖLÜM(?:\s*$|\s+.*$)"
+)
+
 def clean_line(line):
     return re.sub(r"\s+", " ", line.replace("\xa0", " ")).strip()
 
-def extract_heading_before_article(text, article_start):
-    """
-    MADDE satırının hemen önündeki madde başlığını alır.
-    Bölüm başlıklarını veya önceki maddenin son cümlesini başlık olarak kabul etmez.
-    """
+def is_structural_heading(line):
+    u = line.upper().strip()
+    if re.fullmatch(rf"(?:{SECTION_WORDS})\s+BÖLÜM", u):
+        return True
+    if u.endswith(" KISIM"):
+        return True
+    return False
+
+def heading_span_before_article(text, article_start):
     prefix = text[:article_start]
-    lines = [clean_line(x) for x in prefix.splitlines()]
-    lines = [x for x in lines if x]
+    lines = list(re.finditer(r"(?m)^.*$", prefix))
 
-    if not lines:
-        return ""
+    for lm in reversed(lines):
+        candidate = clean_line(lm.group(0))
+        if not candidate:
+            continue
 
-    candidate = lines[-1]
+        if is_structural_heading(candidate):
+            return "", article_start, article_start
 
-    # "ÜÇÜNCÜ BÖLÜM" gibi yapısal başlıklar madde başlığı değildir.
-    if re.fullmatch(rf"(?:{SECTION_WORDS})\s+BÖLÜM", candidate, flags=re.I):
-        return ""
+        if candidate.upper().startswith(("RESMÎ GAZETE", "RESMI GAZETE", "SAYFA ")):
+            continue
 
-    # Resmî Gazete / sayfa dipnotu gibi satırları başlık yapma.
-    bad_prefixes = ("RESMÎ GAZETE", "RESMI GAZETE", "SAYFA ", "EK-")
-    if candidate.upper().startswith(bad_prefixes):
-        return ""
+        # Madde başlıkları kısa olur ve tam cümle gibi nokta ile bitmez.
+        if len(candidate) <= 170 and not candidate.endswith("."):
+            if not re.match(r"(?i)^(?:GEÇİCİ\s+)?MADDE\s+\d+", candidate):
+                return candidate, lm.start(), lm.end()
 
-    # Önceki maddenin uzun bitiş cümlesini yanlışlıkla başlık alma.
-    # Madde başlıkları genellikle kısa ve nokta ile bitmez.
-    if len(candidate) > 160 or candidate.endswith("."):
-        return ""
+        return "", article_start, article_start
 
-    return candidate
+    return "", article_start, article_start
 
-def trim_structural_tail(raw):
-    """
-    Bir maddenin sonuna sarkan 'ÜÇÜNCÜ BÖLÜM' vb. yapısal başlıkları
-    ve onlardan sonraki metni maddenin dışına çıkarır.
-    """
-    m = SECTION_RE.search(raw)
-    if m:
-        raw = raw[:m.start()]
-    return raw.strip()
-
-def format_article_text(raw):
-    """
-    HTML/PDF kaynaklı gereksiz satır kırılmalarını temizler.
-    Fıkraları ve bentleri okunabilir biçimde ayrı satırlarda tutar.
-    """
-    raw = trim_structural_tail(raw)
+def format_body(raw):
+    # Kaynaktaki yapay satır sonlarını kaldır.
     raw = raw.replace("\xa0", " ")
-
-    # Önce bütün yapay satır kırılmalarını boşluğa çevir.
     raw = re.sub(r"\s+", " ", raw).strip()
 
-    # MADDE başlığından sonra ilk fıkrayı aynı satır düzeninde bırak.
-    raw = re.sub(r"\s+(?=\(\d+\)\s)", "\n\n", raw)
+    # Yeni fıkraları yalnızca önceki cümle bitmişse yeni satıra al.
+    # Böylece "(Ek ibare...)(1) ile" içindeki dipnot (1) bölünmez.
+    raw = re.sub(r"(?<=[.!?])\s+(?=\(\d+\)\s+[A-ZÇĞİÖŞÜ])", "\n", raw)
 
-    # Bentleri ayrı satıra al: a), b), c)...
-    raw = re.sub(
-        r"\s+(?=(?:[a-zçğıöşü])\)\s)",
-        "\n",
-        raw,
-        flags=re.I
-    )
+    # Bentleri okunaklı tut.
+    raw = re.sub(r"\s+(?=[a-zçğıöşü]\)\s+[A-ZÇĞİÖŞÜ])", "\n", raw, flags=re.I)
 
-    # Alt bentleri ayrı satıra al: 1), 2), 3)...
-    raw = re.sub(r"\s+(?=\d+\)\s)", "\n", raw)
-
-    # Değişiklik notlarını metinden koparmadan önceki boşlukları normalize et.
-    raw = re.sub(r"[ \t]{2,}", " ", raw)
-    raw = re.sub(r"\n{3,}", "\n\n", raw)
     return raw.strip()
 
 def split_articles(text):
     text = normalize_text(text)
     matches = list(ARTICLE_RE.finditer(text))
+    headings = [heading_span_before_article(text, m.start()) for m in matches]
     articles = []
 
     for i, m in enumerate(matches):
-        raw_end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        raw_chunk = text[m.start():raw_end]
-
-        # Sonraki bölüm başlığını mevcut maddeye dahil etme.
-        raw_chunk = trim_structural_tail(raw_chunk)
-
-        madde_title = re.sub(r"\s+", " ", m.group("title")).strip()
         num = m.group("num")
-        is_temp = madde_title.upper().startswith("GEÇİCİ")
+        is_temp = m.group("title").upper().startswith("GEÇİCİ")
+        heading, _, _ = headings[i]
 
-        heading = extract_heading_before_article(text, m.start())
+        # KRİTİK: Mevcut madde, bir sonraki MADDE satırında değil,
+        # bir sonraki maddenin başlığı başladığı yerde biter.
+        if i + 1 < len(matches):
+            next_heading, next_heading_start, _ = headings[i + 1]
+            end = next_heading_start if next_heading else matches[i + 1].start()
+        else:
+            end = len(text)
 
-        formatted = format_article_text(raw_chunk)
+        raw_body = text[m.end():end]
+
+        # "ÜÇÜNCÜ BÖLÜM" vb. hiçbir durumda maddeye dahil edilmez.
+        sec = SECTION_RE.search(raw_body)
+        if sec:
+            raw_body = raw_body[:sec.start()]
+
+        body = format_body(raw_body)
 
         articles.append({
             "id": ("g-" if is_temp else "") + num,
             "etiket": ("Geçici Madde " if is_temp else "Madde ") + num,
             "baslik": heading,
-            "metin": formatted
+            "madde_no": num,
+            "gecici": is_temp,
+            "metin": body
         })
 
     return articles
