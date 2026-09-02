@@ -185,32 +185,31 @@ def heading_span_before_article(text, article_start):
     return heading, start_pos, end_pos
 
 def format_body(raw):
-    # Kaynaktaki yapay satır sonlarını kaldır.
     raw = raw.replace("\xa0", " ")
     raw = re.sub(r"\s+", " ", raw).strip()
 
-    # FIKRALAR:
-    # Bir cümle . ! ? ile bittikten sonra gelen (2), (3), (4)... işaretlerini
-    # mutlaka yeni satıra alır. İşaretin ardından "(Ek ibare...)" gibi bir
-    # açıklama gelse bile çalışır.
-    #
-    # Değişiklik dipnotlarındaki "(Ek ibare...)(1)" ise öncesinde cümle sonu
-    # bulunmadığı için yanlışlıkla yeni fıkra yapılmaz.
+    # Fıkralar: cümle sonundan sonra gelen (2), (3), (4)... yeni satıra.
     raw = re.sub(r"(?<=[.!?])\s*(?=\(\d+\))", "\n", raw)
 
-    # BENTLER:
-    # a), b), c), ç)... bentlerini yeni satıra alır.
-    raw = re.sub(
-        r"(?<!^)\s+(?=(?:[a-zçğıöşü])\)\s+)",
-        "\n",
-        raw,
-        flags=re.I
-    )
+    # Bazı resmî metinlerde bir fıkra noktalama işareti olmadan da araya girebiliyor.
+    # Öncesinde uzun bir kelime/cümle parçası varsa ve ardından (2)-(99) geliyorsa ayır.
+    raw = re.sub(r"(?<!^)\s+(?=\((?:[2-9]|[1-9]\d)\)\s)", "\n", raw)
 
-    # 1), 2), 3) şeklindeki alt bentleri de yeni satıra al.
+    # Bentler: a), b), c), ç)...
+    raw = re.sub(r"(?<!^)\s+(?=(?:[a-zçğıöşü])\)\s+)", "\n", raw, flags=re.I)
+
+    # Alt bentler: 1), 2), 3)...
+    raw = re.sub(r"(?<!^)\s+(?=\d+\)\s+)", "\n", raw)
+
+    # Dipnot işaretleri / değişiklik atıfları:
+    # "(Ek ibare:...)(1)" gibi yapılardaki son (1) üst karaktere çevrilir.
+    def _footnote_repl(m):
+        n = m.group(1)
+        return "⁽" + n.translate(str.maketrans("0123456789","⁰¹²³⁴⁵⁶⁷⁸⁹")) + "⁾"
+
     raw = re.sub(
-        r"(?<!^)\s+(?=\d+\)\s+)",
-        "\n",
+        r"(?<=\))\s*\((\d{1,2})\)(?=\s*(?:[A-Za-zÇĞİÖŞÜçğıöşü]|[,.;:]))",
+        _footnote_repl,
         raw
     )
 
