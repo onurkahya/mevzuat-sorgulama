@@ -99,28 +99,69 @@ def is_structural_heading(line):
     return False
 
 def heading_span_before_article(text, article_start):
+    """
+    MADDE satırından hemen önceki madde başlığını bulur.
+    Başlık iki veya daha fazla satıra bölünmüşse tamamını birlikte alır.
+    Örn:
+      Ön bilgilendirmeye ilişkin
+      diğer yükümlülükler
+      MADDE 8 -
+    Bu durumda iki başlık satırının başlangıcı Madde 7'nin bitişidir.
+    """
     prefix = text[:article_start]
-    lines = list(re.finditer(r"(?m)^.*$", prefix))
+    line_matches = list(re.finditer(r"(?m)^.*$", prefix))
 
-    for lm in reversed(lines):
+    collected = []
+    start_pos = article_start
+    end_pos = article_start
+
+    for lm in reversed(line_matches):
         candidate = clean_line(lm.group(0))
+
         if not candidate:
+            # Başlık bloğunu toplamaya başladıysak boş satırda dur.
+            if collected:
+                break
             continue
 
         if is_structural_heading(candidate):
-            return "", article_start, article_start
+            break
 
-        if candidate.upper().startswith(("RESMÎ GAZETE", "RESMI GAZETE", "SAYFA ")):
+        upper = candidate.upper()
+        if upper.startswith(("RESMÎ GAZETE", "RESMI GAZETE", "SAYFA ")):
+            if collected:
+                break
             continue
 
-        # Madde başlıkları kısa olur ve tam cümle gibi nokta ile bitmez.
-        if len(candidate) <= 170 and not candidate.endswith("."):
-            if not re.match(r"(?i)^(?:GEÇİCİ\s+)?MADDE\s+\d+", candidate):
-                return candidate, lm.start(), lm.end()
+        # Önceki madde gövdesine ulaştığımızı gösteren güçlü işaretler.
+        if candidate.endswith((".", ";", "?", "!")):
+            break
+        if re.match(r"^\(\d+\)\s+", candidate):
+            break
+        if re.match(r"^[a-zçğıöşü]\)\s+", candidate, flags=re.I):
+            break
+        if re.match(r"(?i)^(?:GEÇİCİ\s+)?MADDE\s+\d+", candidate):
+            break
 
+        # Madde başlığı satırları genellikle kısa olur.
+        if len(candidate) > 120:
+            break
+
+        collected.append(candidate)
+        start_pos = lm.start()
+        end_pos = max(end_pos, lm.end())
+
+        # Başlığın 3 satırdan fazla olması beklenmez.
+        if len(collected) >= 3:
+            break
+
+    if not collected:
         return "", article_start, article_start
 
-    return "", article_start, article_start
+    collected.reverse()
+    heading = " ".join(collected)
+    heading = re.sub(r"\s+", " ", heading).strip()
+    return heading, start_pos, end_pos
 
 def format_body(raw):
     # Kaynaktaki yapay satır sonlarını kaldır.
