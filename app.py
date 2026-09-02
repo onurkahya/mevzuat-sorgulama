@@ -26,6 +26,24 @@ HEADERS = {
     "Referer": "https://www.mevzuat.gov.tr/"
 }
 
+
+def safe_get(url, timeout=30):
+    """
+    Önce normal SSL doğrulamasıyla bağlanır.
+    Yalnızca sertifika doğrulama hatasında mevzuat.gov.tr için verify=False ile tekrar dener.
+    """
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=timeout)
+        return r, False
+    except requests.exceptions.SSLError:
+        # Yalnızca resmi mevzuat.gov.tr alan adı için kontrollü fallback
+        if not url.lower().startswith("https://www.mevzuat.gov.tr/"):
+            raise
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        r = requests.get(url, headers=HEADERS, timeout=timeout, verify=False)
+        return r, True
+
 def now():
     return datetime.now().isoformat(timespec="seconds")
 
@@ -78,7 +96,7 @@ def fetch_live_html(item):
         f"{BASE}/anasayfa/MevzuatFihristDetayIframe"
         f"?MevzuatTur={item['tur']}&MevzuatNo={item['no']}&MevzuatTertip={item['tertip']}"
     )
-    r = requests.get(url, headers=HEADERS, timeout=30)
+    r, ssl_fallback = safe_get(url, timeout=30)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, "html.parser")
     for t in soup(["script", "style", "noscript"]):
@@ -90,7 +108,8 @@ def fetch_live_html(item):
         "articles": articles,
         "source_type": "canli_html",
         "source_url": url,
-        "fetched_at": now()
+        "fetched_at": now(),
+        "ssl_fallback": ssl_fallback
     }
 
 def fetch_official_pdf(item):
@@ -98,7 +117,7 @@ def fetch_official_pdf(item):
         f"{BASE}/File/GeneratePdf"
         f"?mevzuatNo={item['no']}&mevzuatTur={item['tur']}&mevzuatTertip={item['tertip']}"
     )
-    r = requests.get(url, headers=HEADERS, timeout=45)
+    r, ssl_fallback = safe_get(url, timeout=45)
     r.raise_for_status()
     if not r.content.startswith(b"%PDF"):
         raise RuntimeError("Resmî PDF adresi PDF döndürmedi.")
@@ -112,7 +131,8 @@ def fetch_official_pdf(item):
         "articles": articles,
         "source_type": "canli_pdf",
         "source_url": url,
-        "fetched_at": now()
+        "fetched_at": now(),
+        "ssl_fallback": ssl_fallback
     }
 
 def get_legislation(key):
