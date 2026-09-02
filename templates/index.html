@@ -336,10 +336,28 @@ function escapeHtml(value){
 
 function renderOfficialText(value){
  let safe=escapeHtml(value||"");
+
+ // Yeni güvenli işaretleme
+ safe=safe.replace(/__SUP_START__(.*?)__SUP_END__/g,function(_,content){
+   return "<sup>"+content+"</sup>";
+ });
+
+ // Önceki önbellekten gelebilecek eski işaretlemeleri de destekle.
+ safe=safe.replace(/\[\[SUP\]\](.*?)\[\[\/SUP\]\]/g,function(_,content){
+   return "<sup>"+content+"</sup>";
+ });
  safe=safe.replace(/⟦SUP⟧(.*?)⟦\/SUP⟧/g,function(_,content){
    return "<sup>"+content+"</sup>";
  });
+
  return safe.replace(/\n/g,"<br>");
+}
+
+function plainOfficialText(value){
+ return (value||"")
+   .replace(/__SUP_START__(.*?)__SUP_END__/g,"$1")
+   .replace(/\[\[SUP\]\](.*?)\[\[\/SUP\]\]/g,"$1")
+   .replace(/⟦SUP⟧(.*?)⟦\/SUP⟧/g,"$1");
 }
 
 function resetPage(){
@@ -390,7 +408,7 @@ async function loadLaw(){
    d.articles.forEach((a,i)=>{
       const o=document.createElement("option");
       o.value=i;
-      o.textContent=a.etiket+(a.baslik ? " - "+a.baslik : "");
+      o.textContent=a.etiket+(a.baslik ? " - "+plainOfficialText(a.baslik) : "");
       sel.appendChild(o);
    });
    sel.onchange=showSelectedArticle;
@@ -436,7 +454,7 @@ function showSelectedArticle(){
  result.querySelector("h2").textContent=current.ad;
 
  const titleEl=result.querySelector("#articleTitle");
- titleEl.textContent=a.baslik || "";
+ titleEl.innerHTML=renderOfficialText(a.baslik || "");
  titleEl.style.display=a.baslik ? "block" : "none";
 
  const bodyEl=result.querySelector(".body");
@@ -470,7 +488,7 @@ function showFullLaw(){
    const prefix=(a.gecici ? "GEÇİCİ MADDE " : "MADDE ")+a.madde_no+" –";
    fullHtml+='<div class="full-article">';
    if(a.baslik){
-     fullHtml+='<div class="full-article-title">'+escapeHtml(a.baslik)+'</div>';
+     fullHtml+='<div class="full-article-title">'+renderOfficialText(a.baslik)+'</div>';
    }
    fullHtml+='<div class="full-article-body"><strong>'+prefix+'</strong> '+
      renderOfficialText(a.metin)+
