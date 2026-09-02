@@ -104,6 +104,21 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
   .article-row{grid-template-columns:1fr}
 }
 
+
+#result sup{
+  font-size:.72em;
+  line-height:0;
+  vertical-align:super;
+  font-weight:700;
+}
+@media print{
+  #result sup{
+    font-size:7.5pt !important;
+    line-height:0 !important;
+    vertical-align:super !important;
+  }
+}
+
 @page{
   size:A4 portrait;
   margin:1.5cm 2cm 2cm 2cm;
@@ -319,6 +334,14 @@ function escapeHtml(value){
  });
 }
 
+function renderOfficialText(value){
+ let safe=escapeHtml(value||"");
+ safe=safe.replace(/⟦SUP⟧(.*?)⟦\/SUP⟧/g,function(_,content){
+   return "<sup>"+content+"</sup>";
+ });
+ return safe.replace(/\n/g,"<br>");
+}
+
 function resetPage(){
  current=null;
  currentMode=null;
@@ -419,7 +442,7 @@ function showSelectedArticle(){
  const bodyEl=result.querySelector(".body");
  bodyEl.className="body";
  const prefix=(a.gecici ? "GEÇİCİ MADDE " : "MADDE ")+a.madde_no+" –";
- bodyEl.innerHTML='<strong>'+prefix+'</strong> '+escapeHtml(a.metin).replace(/\n/g,"<br>");
+ bodyEl.innerHTML='<strong>'+prefix+'</strong> '+renderOfficialText(a.metin);
 
  document.getElementById("resultCard").style.display="block";
  document.getElementById("printCard").style.display="block";
@@ -450,7 +473,7 @@ function showFullLaw(){
      fullHtml+='<div class="full-article-title">'+escapeHtml(a.baslik)+'</div>';
    }
    fullHtml+='<div class="full-article-body"><strong>'+prefix+'</strong> '+
-     escapeHtml(a.metin).replace(/\n/g,"<br>")+
+     renderOfficialText(a.metin)+
      '</div></div>';
  });
  bodyEl.innerHTML=fullHtml;
