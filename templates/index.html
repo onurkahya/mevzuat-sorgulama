@@ -25,9 +25,9 @@ button.secondary{background:transparent;color:#fff;border:1px solid rgba(255,255
 .status{margin-top:15px;padding:12px 14px;border-radius:9px;background:rgba(0,0,0,.2);font-size:13px;line-height:1.5}
 .good{border-left:4px solid #61d095}.warn{border-left:4px solid var(--gold)}.bad{border-left:4px solid #ff7979}
 .result{background:#fff;color:#111;border-radius:14px;padding:18px 22px;min-height:200px}
-.result h2{margin:0 0 5px;color:#071960;font-size:18px}.article-title{font-size:16px;font-weight:800;color:#111;margin:0 0 5px;padding-bottom:5px;border-bottom:1px solid #ddd}
-.meta{font-size:10.5px;color:#555;border-bottom:1px solid #ddd;padding-bottom:6px;margin-bottom:8px;line-height:1.2}
-.body{white-space:normal;line-height:1.28;font-size:13.5px}
+.result h2{margin:0 0 7px;color:#071960;font-size:21px;font-weight:800}.article-title{font-size:17px;font-weight:800;color:#111;margin:0 0 7px;padding:0;border:0}
+.meta{display:none}
+.body{white-space:normal;line-height:1.42;font-size:15px}
 a{color:#0b3aa4}
 @media(max-width:700px){.grid,.actions{grid-template-columns:1fr}h1{font-size:23px}}
 @media print{
@@ -73,7 +73,7 @@ a{color:#0b3aa4}
  <div class="result" id="result">
   <h2>Madde metni</h2>
   <div class="article-title" id="articleTitle"></div>
-  <div class="meta">Bir madde seçildiğinde güncel metin burada gösterilir.</div>
+  <div class="meta"></div>
   <div class="body"></div>
  </div>
 </section>
@@ -126,7 +126,7 @@ function showArticle(){
  if(!current)return;
  const a=current.articles[Number(document.getElementById("article").value||0)];
  const result=document.getElementById("result");
- result.querySelector("h2").textContent=current.ad+" — "+a.etiket;
+ result.querySelector("h2").textContent=current.ad;
  const titleEl=result.querySelector("#articleTitle");
  titleEl.textContent=a.baslik || "";
  titleEl.style.display=a.baslik ? "block" : "none";
