@@ -27,15 +27,97 @@ button.secondary{background:transparent;color:#fff;border:1px solid rgba(255,255
 .result{background:#fff;color:#111;border-radius:14px;padding:18px 22px;min-height:200px}
 .result h2{margin:0 0 7px;color:#071960;font-size:21px;font-weight:800}.article-title{font-size:17px;font-weight:800;color:#111;margin:0 0 7px;padding:0;border:0}
 .meta{display:none}
-.body{white-space:normal;line-height:1.42;font-size:15px}
+.body{white-space:normal;line-height:1.42;font-size:15px;text-align:justify;text-justify:inter-word}
 a{color:#0b3aa4}
 @media(max-width:700px){.grid,.actions{grid-template-columns:1fr}h1{font-size:23px}}
+@page{
+  size:A4 portrait;
+  margin:1.5cm 2cm 2cm 2cm;
+}
 @media print{
- body{background:#fff;color:#000}
- .topline,header,.query{display:none!important}
- main{max-width:none;padding:0}
- .card{background:#fff;border:0;box-shadow:none;padding:0}
- .result{padding:0}
+  html,body{
+    background:#fff !important;
+    color:#000 !important;
+    font-family:'Arial Narrow',Arial,Helvetica,sans-serif !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .topline,
+  header,
+  .query{
+    display:none !important;
+  }
+
+  main{
+    width:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .card{
+    background:#fff !important;
+    border:0 !important;
+    box-shadow:none !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .result{
+    background:#fff !important;
+    color:#000 !important;
+    border:1px solid #9d9d9d !important;
+    border-radius:10px !important;
+    padding:12px 14px !important;
+    margin:0 !important;
+    min-height:0 !important;
+    box-shadow:none !important;
+    page-break-inside:avoid !important;
+  }
+
+  .result h2{
+    color:#000 !important;
+    font-size:11pt !important;
+    line-height:1.2 !important;
+    margin:0 0 7px 0 !important;
+    padding:0 !important;
+    font-weight:800 !important;
+  }
+
+  .article-title{
+    color:#000 !important;
+    font-size:10.5pt !important;
+    line-height:1.2 !important;
+    margin:0 0 5px 0 !important;
+    padding:0 !important;
+    font-weight:800 !important;
+    border:0 !important;
+  }
+
+  .meta{
+    display:none !important;
+  }
+
+  .body{
+    color:#000 !important;
+    font-size:10pt !important;
+    line-height:1.38 !important;
+    text-align:justify !important;
+    text-justify:inter-word !important;
+    white-space:normal !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .body strong{
+    font-weight:800 !important;
+  }
+
+  a{
+    color:#000 !important;
+    text-decoration:none !important;
+  }
 }
 </style>
 </head>
