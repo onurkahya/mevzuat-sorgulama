@@ -15,7 +15,7 @@ h1{margin:8px 0 6px;font-size:29px}
 header p{margin:0;color:var(--muted);font-size:13px}
 main{max-width:1050px;margin:auto;padding:18px 20px 50px}
 .card{background:rgba(20,43,131,.93);border:1px solid rgba(244,196,48,.35);border-radius:16px;padding:22px;margin-bottom:18px;box-shadow:0 16px 45px rgba(0,0,0,.2)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.query-grid{display:grid;grid-template-columns:minmax(0,1fr) 220px;grid-template-rows:auto auto;gap:10px 26px;align-items:end}
 label{display:block;color:var(--gold);font-size:13px;font-weight:800;margin-bottom:7px}
 select,button{width:100%;padding:13px 14px;border-radius:9px;font-size:15px}
 select{background:#fff;color:#111;border:1px solid #d9d9d9}
@@ -29,21 +29,20 @@ button.secondary{background:transparent;color:#fff;border:1px solid rgba(255,255
 .meta{display:none}
 .body{white-space:normal;line-height:1.42;font-size:15px;text-align:justify;text-justify:inter-word}
 a{color:#0b3aa4}
-@media(max-width:700px){.grid,.actions{grid-template-columns:1fr}h1{font-size:23px}}
+@media(max-width:700px){.actions{grid-template-columns:1fr}h1{font-size:23px}}
 
-.font-actions{
-  display:grid;
-  grid-template-columns:1fr 78px 78px;
-  gap:10px;
-  margin-top:16px
-}
+.query-law{grid-column:1;grid-row:1}
+.query-fetch{grid-column:2;grid-row:1}
+.query-article{grid-column:1;grid-row:2;max-width:475px}
+.query-fonts{grid-column:2;grid-row:2;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.query-fetch button,.query-fonts button{height:48px}
 .font-btn{
   background:transparent;
   color:#fff;
   border:1px solid rgba(255,255,255,.42);
   font-size:18px;
   font-weight:900;
-  padding:10px
+  padding:8px
 }
 .status-card{padding:14px 18px}
 .status-card .status{margin:0}
@@ -67,7 +66,8 @@ a{color:#0b3aa4}
 select,button{font-size:calc(15px + var(--font-delta,0px))}
 label,.status{font-size:calc(13px + var(--font-delta,0px))}
 @media(max-width:700px){
-  .font-actions{grid-template-columns:1fr 64px 64px}
+  .query-grid{grid-template-columns:1fr;grid-template-rows:auto}
+  .query-law,.query-fetch,.query-article,.query-fonts{grid-column:1;grid-row:auto;max-width:none}
 }
 
 @page{
@@ -173,8 +173,8 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
 </header>
 <main>
 <section class="card query">
- <div class="grid">
-  <div>
+ <div class="query-grid">
+  <div class="query-law">
    <label>MEVZUAT</label>
    <select id="law">
     <option value="" selected>Lütfen Mevzuat Seçin</option>
@@ -183,18 +183,22 @@ label,.status{font-size:calc(13px + var(--font-delta,0px))}
     {% endfor %}
    </select>
   </div>
-  <div>
+
+  <div class="query-fetch">
+   <button onclick="loadLaw()">Seçili Mevzuatı Getir</button>
+  </div>
+
+  <div class="query-article">
    <label>MADDE NUMARASI</label>
    <select id="article" disabled>
     <option value="">Önce mevzuat seçin</option>
    </select>
   </div>
- </div>
 
- <div class="font-actions">
-  <button onclick="loadLaw()">Seçili Mevzuatı Getir</button>
-  <button type="button" class="font-btn" onclick="changeFont(-1)" title="Yazıyı küçült">A−</button>
-  <button type="button" class="font-btn" onclick="changeFont(1)" title="Yazıyı büyüt">A+</button>
+  <div class="query-fonts">
+   <button type="button" class="font-btn" onclick="changeFont(-1)">A−</button>
+   <button type="button" class="font-btn" onclick="changeFont(1)">A+</button>
+  </div>
  </div>
 </section>
 
@@ -257,7 +261,7 @@ async function loadLaw(){
    return;
  }
 
- setStatus("Mevzuat.gov.tr üzerinden güncel metin alınıyor...","warn");
+ setStatus("Resmî kaynaktan güncel metin alınıyor...","warn");
  sel.disabled=true;
  sel.innerHTML="<option>Yükleniyor...</option>";
 
@@ -271,7 +275,7 @@ async function loadLaw(){
    d.articles.forEach((a,i)=>{
       const o=document.createElement("option");
       o.value=i;
-      o.textContent=a.etiket;
+      o.textContent=a.etiket+(a.baslik ? " - "+a.baslik : "");
       sel.appendChild(o);
    });
 
@@ -285,7 +289,7 @@ async function loadLaw(){
         "warn"
       );
    }else{
-      const src=d.source_type==="canli_html" ? "Canlı HTML" : "Resmî PDF";
+      const src=d.source_type==="canli_html" ? "Canlı HTML" : (d.source_type==="resmi_html" ? "Resmî Gazete HTML" : "Resmî PDF");
       const sslNote=d.ssl_fallback ? " — SSL doğrulama yedeği kullanıldı" : "";
       setStatus(
         "Güncel kaynak başarılı — "+src+" — "+d.articles.length+" madde bulundu"+sslNote+
@@ -296,7 +300,7 @@ async function loadLaw(){
  }catch(err){
    current=null;
    sel.innerHTML="<option>Veri alınamadı</option>";
-   setStatus("Mevzuat.gov.tr üzerinden canlı veri alınamadı: "+err.message,"bad");
+   setStatus("Resmî kaynaktan canlı veri alınamadı: "+err.message,"bad");
 
    const body=document.querySelector("#result .body");
    body.className="body empty-result";
