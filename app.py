@@ -72,23 +72,121 @@ def normalize_text(s):
     s = re.sub(r"\n{3,}", "\n\n", s)
     return s.strip()
 
+SECTION_WORDS = (
+    "BİRİNCİ|İKİNCİ|ÜÇÜNCÜ|DÖRDÜNCÜ|BEŞİNCİ|ALTINCI|YEDİNCİ|SEKİZİNCİ|"
+    "DOKUZUNCU|ONUNCU|ON BİRİNCİ|ON İKİNCİ|ON ÜÇÜNCÜ|ON DÖRDÜNCÜ|"
+    "ON BEŞİNCİ|ON ALTINCI|ON YEDİNCİ|ON SEKİZİNCİ|ON DOKUZUNCU|YİRMİNCİ"
+)
+
+SECTION_RE = re.compile(
+    rf"(?im)^[ \t]*(?:{SECTION_WORDS})\s+BÖLÜM(?:\s*$|\s+.*$)"
+)
+
+ARTICLE_RE = re.compile(
+    r"(?im)^[ \t]*(?P<title>(?:GEÇİCİ\s+)?MADDE\s+(?P<num>\d+(?:/[A-ZÇĞİÖŞÜ])?))"
+    r"\s*[-–—:]?\s*"
+)
+
+def clean_line(line):
+    return re.sub(r"\s+", " ", line.replace("\xa0", " ")).strip()
+
+def extract_heading_before_article(text, article_start):
+    """
+    MADDE satırının hemen önündeki madde başlığını alır.
+    Bölüm başlıklarını veya önceki maddenin son cümlesini başlık olarak kabul etmez.
+    """
+    prefix = text[:article_start]
+    lines = [clean_line(x) for x in prefix.splitlines()]
+    lines = [x for x in lines if x]
+
+    if not lines:
+        return ""
+
+    candidate = lines[-1]
+
+    # "ÜÇÜNCÜ BÖLÜM" gibi yapısal başlıklar madde başlığı değildir.
+    if re.fullmatch(rf"(?:{SECTION_WORDS})\s+BÖLÜM", candidate, flags=re.I):
+        return ""
+
+    # Resmî Gazete / sayfa dipnotu gibi satırları başlık yapma.
+    bad_prefixes = ("RESMÎ GAZETE", "RESMI GAZETE", "SAYFA ", "EK-")
+    if candidate.upper().startswith(bad_prefixes):
+        return ""
+
+    # Önceki maddenin uzun bitiş cümlesini yanlışlıkla başlık alma.
+    # Madde başlıkları genellikle kısa ve nokta ile bitmez.
+    if len(candidate) > 160 or candidate.endswith("."):
+        return ""
+
+    return candidate
+
+def trim_structural_tail(raw):
+    """
+    Bir maddenin sonuna sarkan 'ÜÇÜNCÜ BÖLÜM' vb. yapısal başlıkları
+    ve onlardan sonraki metni maddenin dışına çıkarır.
+    """
+    m = SECTION_RE.search(raw)
+    if m:
+        raw = raw[:m.start()]
+    return raw.strip()
+
+def format_article_text(raw):
+    """
+    HTML/PDF kaynaklı gereksiz satır kırılmalarını temizler.
+    Fıkraları ve bentleri okunabilir biçimde ayrı satırlarda tutar.
+    """
+    raw = trim_structural_tail(raw)
+    raw = raw.replace("\xa0", " ")
+
+    # Önce bütün yapay satır kırılmalarını boşluğa çevir.
+    raw = re.sub(r"\s+", " ", raw).strip()
+
+    # MADDE başlığından sonra ilk fıkrayı aynı satır düzeninde bırak.
+    raw = re.sub(r"\s+(?=\(\d+\)\s)", "\n\n", raw)
+
+    # Bentleri ayrı satıra al: a), b), c)...
+    raw = re.sub(
+        r"\s+(?=(?:[a-zçğıöşü])\)\s)",
+        "\n",
+        raw,
+        flags=re.I
+    )
+
+    # Alt bentleri ayrı satıra al: 1), 2), 3)...
+    raw = re.sub(r"\s+(?=\d+\)\s)", "\n", raw)
+
+    # Değişiklik notlarını metinden koparmadan önceki boşlukları normalize et.
+    raw = re.sub(r"[ \t]{2,}", " ", raw)
+    raw = re.sub(r"\n{3,}", "\n\n", raw)
+    return raw.strip()
+
 def split_articles(text):
     text = normalize_text(text)
-    pat = re.compile(
-        r"(?im)^(?P<title>(?:GEÇİCİ\s+)?MADDE\s+(?P<num>\d+(?:/[A-ZÇĞİÖŞÜ])?))\s*[-–—:]?\s*"
-    )
-    matches = list(pat.finditer(text))
+    matches = list(ARTICLE_RE.finditer(text))
     articles = []
+
     for i, m in enumerate(matches):
-        end = matches[i+1].start() if i + 1 < len(matches) else len(text)
-        title = re.sub(r"\s+", " ", m.group("title")).strip()
+        raw_end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        raw_chunk = text[m.start():raw_end]
+
+        # Sonraki bölüm başlığını mevcut maddeye dahil etme.
+        raw_chunk = trim_structural_tail(raw_chunk)
+
+        madde_title = re.sub(r"\s+", " ", m.group("title")).strip()
         num = m.group("num")
-        is_temp = title.upper().startswith("GEÇİCİ")
+        is_temp = madde_title.upper().startswith("GEÇİCİ")
+
+        heading = extract_heading_before_article(text, m.start())
+
+        formatted = format_article_text(raw_chunk)
+
         articles.append({
             "id": ("g-" if is_temp else "") + num,
             "etiket": ("Geçici Madde " if is_temp else "Madde ") + num,
-            "metin": text[m.start():end].strip()
+            "baslik": heading,
+            "metin": formatted
         })
+
     return articles
 
 def fetch_live_html(item):
