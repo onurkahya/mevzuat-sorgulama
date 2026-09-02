@@ -201,18 +201,6 @@ def format_body(raw):
     # Alt bentler: 1), 2), 3)...
     raw = re.sub(r"(?<!^)\s+(?=\d+\)\s+)", "\n", raw)
 
-    # Dipnot işaretleri / değişiklik atıfları:
-    # "(Ek ibare:...)(1)" gibi yapılardaki son (1) üst karaktere çevrilir.
-    def _footnote_repl(m):
-        n = m.group(1)
-        return "⁽" + n.translate(str.maketrans("0123456789","⁰¹²³⁴⁵⁶⁷⁸⁹")) + "⁾"
-
-    raw = re.sub(
-        r"(?<=\))\s*\((\d{1,2})\)(?=\s*(?:[A-Za-zÇĞİÖŞÜçğıöşü]|[,.;:]))",
-        _footnote_repl,
-        raw
-    )
-
     raw = re.sub(r"\n{2,}", "\n", raw)
     return raw.strip()
 
@@ -256,28 +244,18 @@ def split_articles(text):
     return articles
 
 
-SUPERSCRIPT_MAP = str.maketrans({
-    "0":"⁰", "1":"¹", "2":"²", "3":"³", "4":"⁴",
-    "5":"⁵", "6":"⁶", "7":"⁷", "8":"⁸", "9":"⁹",
-    "+":"⁺", "-":"⁻", "=":"⁼", "(":"⁽", ")":"⁾",
-    "n":"ⁿ", "i":"ⁱ"
-})
-
-def to_superscript_text(value):
-    value = re.sub(r"\s+", "", value or "")
-    return value.translate(SUPERSCRIPT_MAP)
+SUP_TOKEN_START = "⟦SUP⟧"
+SUP_TOKEN_END = "⟦/SUP⟧"
 
 def preserve_superscripts(soup):
     """
-    Resmî HTML içindeki <sup> öğelerini düz metne dönüşmeden önce
-    Unicode üst karakterlere çevirir.
-    Örn. <sup>(1)</sup> -> ⁽¹⁾
+    Resmî HTML içindeki <sup> öğelerini özel işaretlerle korur.
+    Örn. <sup>[1]</sup> -> ⟦SUP⟧[1]⟦/SUP⟧
     """
     for tag in soup.find_all("sup"):
-        value = tag.get_text(" ", strip=True)
-        converted = to_superscript_text(value)
-        if converted:
-            tag.replace_with(converted)
+        value = re.sub(r"\s+", "", tag.get_text(" ", strip=True))
+        if value:
+            tag.replace_with(f"{SUP_TOKEN_START}{value}{SUP_TOKEN_END}")
         else:
             tag.decompose()
 
