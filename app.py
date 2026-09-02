@@ -16,6 +16,13 @@ MEVZUATLAR = {
         "tur": "7",
         "tertip": "5",
         "kaynak": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=20237&MevzuatTur=7&MevzuatTertip=5"
+    },
+    "fiyat-etiketi": {
+        "ad": "FİYAT ETİKETİ YÖNETMELİĞİ",
+        "no": "19819",
+        "tur": "7",
+        "tertip": "5",
+        "kaynak": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=19819&MevzuatTur=7&MevzuatTertip=5"
     }
 }
 
