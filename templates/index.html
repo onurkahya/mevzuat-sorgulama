@@ -25,7 +25,7 @@ button.secondary{background:transparent;color:#fff;border:1px solid rgba(255,255
 .status{margin-top:15px;padding:12px 14px;border-radius:9px;background:rgba(0,0,0,.2);font-size:13px;line-height:1.5}
 .good{border-left:4px solid #61d095}.warn{border-left:4px solid var(--gold)}.bad{border-left:4px solid #ff7979}
 .result{background:#fff;color:#111;border-radius:14px;padding:25px;min-height:250px}
-.result h2{margin:0 0 10px;color:#071960;font-size:20px}
+.result h2{margin:0 0 8px;color:#071960;font-size:20px}.article-title{font-size:18px;font-weight:800;color:#111;margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid #ddd}
 .meta{font-size:12px;color:#555;border-bottom:1px solid #ddd;padding-bottom:13px;margin-bottom:16px;line-height:1.5}
 .body{white-space:pre-wrap;line-height:1.72;font-size:15px}
 a{color:#0b3aa4}
@@ -72,6 +72,7 @@ a{color:#0b3aa4}
 <section class="card">
  <div class="result" id="result">
   <h2>Madde metni</h2>
+  <div class="article-title" id="articleTitle"></div>
   <div class="meta">Bir madde seçildiğinde güncel metin burada gösterilir.</div>
   <div class="body"></div>
  </div>
@@ -109,7 +110,8 @@ async function loadLaw(){
    }else{
       st.className="status good";
       const src=d.source_type==="canli_html" ? "Canlı HTML" : "Resmî PDF";
-      st.textContent="Güncel kaynak başarılı — "+src+" — "+d.articles.length+" madde bulundu. Alınma zamanı: "+(d.fetched_at||"-");
+      const sslNote=d.ssl_fallback ? " — SSL doğrulama yedeği kullanıldı" : "";
+      st.textContent="Güncel kaynak başarılı — "+src+" — "+d.articles.length+" madde bulundu"+sslNote+". Alınma zamanı: "+(d.fetched_at||"-");
    }
  }catch(err){
    current=null;
@@ -125,6 +127,9 @@ function showArticle(){
  const a=current.articles[Number(document.getElementById("article").value||0)];
  const result=document.getElementById("result");
  result.querySelector("h2").textContent=current.ad+" — "+a.etiket;
+ const titleEl=result.querySelector("#articleTitle");
+ titleEl.textContent=a.baslik || "";
+ titleEl.style.display=a.baslik ? "block" : "none";
  result.querySelector(".meta").innerHTML=
    'Kaynak: <a target="_blank" rel="noopener" href="'+current.kaynak+'">mevzuat.gov.tr resmî metni</a>'+
    " · Veri zamanı: "+(current.fetched_at||current.cache_time||"-");
