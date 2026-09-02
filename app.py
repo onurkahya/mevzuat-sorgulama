@@ -10,20 +10,35 @@ CACHE_DIR = Path(__file__).parent / "cache"
 CACHE_DIR.mkdir(exist_ok=True)
 
 MEVZUATLAR = {
-    "mesafeli-sozlesmeler": {
-        "ad": "MESAFELİ SÖZLEŞMELER YÖNETMELİĞİ",
-        "no": "20237",
-        "tur": "7",
-        "tertip": "5",
-        "kaynak": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=20237&MevzuatTur=7&MevzuatTertip=5"
-    },
-    "fiyat-etiketi": {
-        "ad": "FİYAT ETİKETİ YÖNETMELİĞİ",
-        "no": "19819",
-        "tur": "7",
-        "tertip": "5",
-        "kaynak": "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=19819&MevzuatTur=7&MevzuatTertip=5"
-    }
+    "6502-tuketici-kanunu": {"ad":"6502 SAYILI TÜKETİCİNİN KORUNMASI HAKKINDA KANUN","no":"6502","tur":"1","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6502&MevzuatTur=1&MevzuatTertip=5"},
+    "abonelik-sozlesmeleri": {"ad":"ABONELİK SÖZLEŞMELERİ YÖNETMELİĞİ","no":"20480","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=20480&MevzuatTur=7&MevzuatTertip=5"},
+    "devre-tatil": {"ad":"DEVRE TATİL VE UZUN SÜRELİ TATİL HİZMETİ SÖZLEŞMELERİ YÖNETMELİĞİ","no":"20442","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=20442&MevzuatTur=7&MevzuatTertip=5"},
+    "dogrudan-satislar": {"ad":"DOĞRUDAN SATIŞLAR HAKKINDA YÖNETMELİK","no":"42526","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=42526&MevzuatTur=7&MevzuatTertip=5"},
+    "finansal-hizmetler-mesafeli": {"ad":"FİNANSAL HİZMETLERE İLİŞKİN MESAFELİ SÖZLEŞMELER YÖNETMELİĞİ","no":"20495","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=20495&MevzuatTur=7&MevzuatTertip=5"},
+    "fiyat-etiketi": {"ad":"FİYAT ETİKETİ YÖNETMELİĞİ","no":"19819","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=19819&MevzuatTur=7&MevzuatTertip=5"},
+    "garanti-belgesi": {"ad":"GARANTİ BELGESİ YÖNETMELİĞİ","no":"19782","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=19782&MevzuatTur=7&MevzuatTertip=5"},
+    "isyeri-disinda-kurulan": {"ad":"İŞ YERİ DIŞINDA KURULAN SÖZLEŞMELER YÖNETMELİĞİ","no":"20444","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=20444&MevzuatTur=7&MevzuatTertip=5"},
+    "konut-finansmani": {"ad":"KONUT FİNANSMANI SÖZLEŞMELERİ YÖNETMELİĞİ","no":"20793","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=20793&MevzuatTur=7&MevzuatTertip=5"},
+    "mesafeli-sozlesmeler": {"ad":"MESAFELİ SÖZLEŞMELER YÖNETMELİĞİ","no":"20237","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=20237&MevzuatTur=7&MevzuatTertip=5"},
+    "on-odemeli-konut": {"ad":"ÖN ÖDEMELİ KONUT SATIŞLARI HAKKINDA YÖNETMELİK","no":"20238","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=20238&MevzuatTur=7&MevzuatTertip=5"},
+    "paket-tur": {"ad":"PAKET TUR SÖZLEŞMELERİ YÖNETMELİĞİ","no":"20446","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=20446&MevzuatTur=7&MevzuatTertip=5"},
+    "satis-sonrasi-hizmetler": {"ad":"SATIŞ SONRASI HİZMETLER YÖNETMELİĞİ","no":"19783","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=19783&MevzuatTur=7&MevzuatTertip=5"},
+    "sureli-yayin-promosyon": {"ad":"SÜRELİ YAYIN KURULUŞLARINCA DÜZENLENEN PROMOSYON UYGULAMALARINA İLİŞKİN YÖNETMELİK","no":"19800","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=19800&MevzuatTur=7&MevzuatTertip=5"},
+    "taksitle-satis": {"ad":"TAKSİTLE SATIŞ SÖZLEŞMELERİ HAKKINDA YÖNETMELİK","no":"20447","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=20447&MevzuatTur=7&MevzuatTertip=5"},
+    "tanitma-kullanma-kilavuzu": {"ad":"TANITMA VE KULLANMA KILAVUZU YÖNETMELİĞİ","no":"19784","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=19784&MevzuatTur=7&MevzuatTertip=5"},
+    "ticari-reklam": {"ad":"TİCARİ REKLAM VE HAKSIZ TİCARİ UYGULAMALAR YÖNETMELİĞİ","no":"20435","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=20435&MevzuatTur=7&MevzuatTertip=5"},
+    "tuketici-kredisi": {"ad":"TÜKETİCİ KREDİSİ SÖZLEŞMELERİ YÖNETMELİĞİ","no":"20767","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=20767&MevzuatTur=7&MevzuatTertip=5"},
+    "haksiz-sartlar": {"ad":"TÜKETİCİ SÖZLEŞMELERİNDEKİ HAKSIZ ŞARTLAR HAKKINDA YÖNETMELİK","no":"19798","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=19798&MevzuatTur=7&MevzuatTertip=5"},
+    "yenilenmis-urunler": {"ad":"YENİLENMİŞ ÜRÜNLER HAKKINDA YÖNETMELİK","no":"46233","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=46233&MevzuatTur=7&MevzuatTertip=5"},
+    "6585-perakende-kanunu": {"ad":"6585 SAYILI PERAKENDE TİCARETİN DÜZENLENMESİ HAKKINDA KANUN","no":"6585","tur":"1","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6585&MevzuatTur=1&MevzuatTertip=5"},
+    "haksiz-fiyat": {"ad":"HAKSIZ FİYAT DEĞERLENDİRME KURULU YÖNETMELİĞİ","no":"34561","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=34561&MevzuatTur=7&MevzuatTertip=5"},
+    "tasinmaz-ticareti": {"ad":"TAŞINMAZ TİCARETİ HAKKINDA YÖNETMELİK","no":"24645","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=24645&MevzuatTur=7&MevzuatTertip=5"},
+    "motorlu-kara-ticareti": {"ad":"MOTORLU KARA TAŞITLARININ TİCARETİ HAKKINDA YÖNETMELİK","no":"40940","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=40940&MevzuatTur=7&MevzuatTertip=5"},
+    "kuyum-ticareti": {"ad":"KUYUM TİCARETİ HAKKINDA YÖNETMELİK","no":"38527","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=38527&MevzuatTur=7&MevzuatTertip=5"},
+    "motorlu-kara-kiralanmasi": {"ad":"MOTORLU KARA TAŞITLARININ KİRALANMASI HAKKINDA YÖNETMELİK","kaynak":"https://www.resmigazete.gov.tr/eskiler/2026/08/20260815-1.htm","direct_html":True},
+    "alisveris-merkezleri": {"ad":"ALIŞVERİŞ MERKEZLERİ HAKKINDA YÖNETMELİK","no":"21431","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=21431&MevzuatTur=7&MevzuatTertip=5"},
+    "perakende-ilke-kurallar": {"ad":"PERAKENDE TİCARETTE UYGULANACAK İLKE VE KURALLAR HAKKINDA YÖNETMELİK","no":"22722","tur":"7","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=22722&MevzuatTur=7&MevzuatTertip=5"},
+    "6563-elektronik-ticaret": {"ad":"6563 SAYILI ELEKTRONİK TİCARETİN DÜZENLENMESİ HAKKINDA KANUN","no":"6563","tur":"1","tertip":"5","kaynak":"https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6563&MevzuatTur=1&MevzuatTertip=5"}
 }
 
 HEADERS = {
@@ -313,11 +328,40 @@ def fetch_official_pdf(item):
         "ssl_fallback": ssl_fallback
     }
 
+
+def fetch_direct_html(item):
+    url = item["kaynak"]
+    r = requests.get(url, headers=HEADERS, timeout=35)
+    r.raise_for_status()
+
+    if not r.encoding or r.encoding.lower() in ("iso-8859-1", "ascii"):
+        r.encoding = r.apparent_encoding or "utf-8"
+
+    soup = BeautifulSoup(r.text, "html.parser")
+    for t in soup(["script", "style", "noscript"]):
+        t.decompose()
+
+    preserve_superscripts(soup)
+    articles = split_articles(soup.get_text("\n"))
+
+    if not articles:
+        raise RuntimeError("Resmî HTML geldi ancak madde başlıkları ayrıştırılamadı.")
+
+    return {
+        "articles": articles,
+        "source_type": "resmi_html",
+        "source_url": url,
+        "fetched_at": now(),
+        "ssl_fallback": False
+    }
+
 def get_legislation(key):
     item = MEVZUATLAR[key]
     errors = []
 
-    for getter in (fetch_live_html, fetch_official_pdf):
+    getters = (fetch_direct_html,) if item.get("direct_html") else (fetch_live_html, fetch_official_pdf)
+
+    for getter in getters:
         try:
             data = getter(item)
             data["ad"] = item["ad"]
